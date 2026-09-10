@@ -15,7 +15,6 @@ modulo) para produzir um trecho continuo por parede fisica, nao fragmentos.
 """
 
 from .vectors2d import sub, add, scale, length, normalize, dot, cross, midpoint
-from Autodesk.Revit.DB import Arc, ModelArc, Line, XYZ
 
 # ---------------------------------------------------------------------------
 # Segmento: um par de pontos (x, y). Representado como ((x0,y0), (x1,y1)).
@@ -35,8 +34,6 @@ def seg_length(segment):
 # ---------------------------------------------------------------------------
 # Paralelismo e distancia entre retas paralelas
 # ---------------------------------------------------------------------------
-def is_arc(segment):
-    return type(segment) == Arc or type(segment) == ModelArc
 
 def are_parallel(segment_a, segment_b, angle_tolerance_deg=1.0):
     """True se os dois segmentos apontam na mesma direcao (ou oposta) dentro
