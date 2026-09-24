@@ -17,8 +17,8 @@ active_level = doc.ActiveView.GenLevel
 
 # --- tolerancias (metros, fronteira de usuario -- ver SPEC.md da auditoria) ---
 MIN_THICKNESS_M = 0.02
-MAX_THICKNESS_M = 0.35
-MIN_LENGTH_M = 0.5
+MAX_THICKNESS_M = 0.30
+MIN_LENGTH_M = 0.4
 MAX_GAP_M = 1.0            # fecha aberturas de porta; vaos maiores (corredor) ficam abertos
 DEFAULT_HEIGHT_M = 3.2
 
@@ -26,7 +26,13 @@ DEFAULT_HEIGHT_M = 3.2
 def get_or_create_walltype(doc, thickness_ft):
     """Reusa um WallType Basic com espessura proxima, ou duplica o primeiro
     Basic existente com essa espessura. Minimo: sem cache, sem nomenclatura
-    elaborada -- so o suficiente para nao falhar Wall.Create."""
+    elaborada -- so o suficiente para nao falhar Wall.Create.
+
+    Assume que ja existe uma Transaction ativa no documento -- o Revit nao
+    permite abrir uma segunda transacao "de topo" enquanto outra estiver
+    aberta, entao esta funcao NAO gerencia a sua propria transacao; quem
+    chama (main()) e responsavel por isso.
+    """
     basic_types = [wt for wt in db.FilteredElementCollector(doc).OfClass(db.WallType)
                 if str(wt.Kind) == "Basic"]
     if not basic_types:
@@ -36,20 +42,18 @@ def get_or_create_walltype(doc, thickness_ft):
 
     for wt in basic_types:
         if abs(wt.Width - thickness_ft) < tol_ft:
-            return wt
+            return wt, False
 
     template = basic_types[0]
     name = "{}mm".format(int(round(to_m(thickness_ft) * 1000)))
-    t = db.Transaction(doc, "Criar WallType {}".format(name))
-    t.Start()
+
     new_type = template.Duplicate(name)
     structure = template.GetCompoundStructure()
     layer = structure.GetLayers()[0]
     layer.Width = thickness_ft
     structure.SetLayers([layer])
     db.WallType.SetCompoundStructure(new_type, structure)
-    t.Commit()
-    return new_type
+    return new_type, True
 
 
 def line_to_segment(model_line):
@@ -97,17 +101,20 @@ def main():
 
     # --- 4. criar uma parede por trecho final ---
     created = 0
+    new_walltypes = 0
     t = db.Transaction(doc, "Criar paredes a partir de linhas CAD")
     t.Start()
     for axis, thickness_ft in merged:
         p0, p1 = segment_to_xyz_pair(axis, z)
         curve = db.Line.CreateBound(p0, p1)
-        walltype = get_or_create_walltype(doc, thickness_ft)
+        walltype, was_created = get_or_create_walltype(doc, thickness_ft)
         db.Wall.Create(doc, curve, walltype.Id, active_level.Id, height_ft, 0, False, False)
         created += 1
+        if was_created:
+            new_walltypes += 1
     t.Commit()
 
-    # forms.alert("{} pares de faces detectados -> {} paredes criadas.".format(len(pairs), created), title="Success", warn_icon=False)
+    forms.alert("Created {} new wall types and {} wall instances.".format(new_walltypes, created), title="Success", warn_icon=False)
 
 
 if __name__ == "__main__":

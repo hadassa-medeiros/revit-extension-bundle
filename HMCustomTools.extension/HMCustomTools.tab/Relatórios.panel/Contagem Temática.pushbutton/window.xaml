@@ -1,0 +1,39 @@
+<Window
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Relatorio de ambientes"
+    Height="560"
+    Width="900"
+    WindowStartupLocation="CenterScreen">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Termos no nome dos ambientes" FontSize="18" FontWeight="SemiBold" />
+        <Grid Grid.Row="1" Margin="0,12,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="terms" Grid.Column="0" Height="30" Padding="8" />
+            <Button Grid.Column="1" Content="Buscar" Width="90" Margin="8,0,0,0" Click="search_click" />
+            <Button Grid.Column="2" Content="Exportar CSV" Width="110" Margin="8,0,0,0" Click="export_click" />
+        </Grid>
+
+        <DataGrid Grid.Row="2" x:Name="results_grid" AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Nome" Binding="{Binding [name]}" Width="*" />
+                <DataGridTextColumn Header="Numero" Binding="{Binding [number]}" Width="120" />
+                <DataGridTextColumn Header="Area" Binding="{Binding [area]}" Width="100" />
+                <DataGridTextColumn Header="Nivel" Binding="{Binding [level]}" Width="180" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <TextBlock Grid.Row="3" x:Name="result_count" Margin="0,12,0,0" Text="Informe os termos e clique em Buscar." />
+    </Grid>
+</Window>
