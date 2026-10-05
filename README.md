@@ -1,6 +1,4 @@
-# CCEN pyRevit
-
-Extensao pyRevit com funcionalidades diversas.
+pyRevit extension composed by multipurpose tools focused on model geometry and report generation.
 
 ## Estrutura
 
